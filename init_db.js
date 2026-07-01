@@ -75,6 +75,7 @@ async function initDatabase() {
         id_matiere INT NOT NULL,
         note DECIMAL(5,2),
         periode VARCHAR(50),
+        annee_scolaire VARCHAR(50) DEFAULT '2025-2026',
         date_saisie DATETIME,
         PRIMARY KEY (id)
       )`
@@ -98,7 +99,8 @@ async function initDatabase() {
         date_paiement TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         mode_paiement VARCHAR(50),
         numero_recu VARCHAR(50),
-        motif VARCHAR(255)
+        motif VARCHAR(255),
+        annee_scolaire VARCHAR(50) DEFAULT '2025-2026'
       )`
     },
     {
@@ -168,7 +170,8 @@ async function initDatabase() {
         date_echeance DATE,
         motif VARCHAR(255),
         date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        statut VARCHAR(20) DEFAULT 'en_attente'
+        statut VARCHAR(20) DEFAULT 'en_attente',
+        annee_scolaire VARCHAR(50) DEFAULT '2025-2026'
       )`
     },
     {
@@ -182,6 +185,7 @@ async function initDatabase() {
         justifie TINYINT(1) DEFAULT 0,
         motif TEXT,
         periode VARCHAR(50),
+        annee_scolaire VARCHAR(50) DEFAULT '2025-2026',
         date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`
     },
@@ -197,6 +201,17 @@ async function initDatabase() {
         punition TEXT,
         statut VARCHAR(20) DEFAULT 'EN_COURS',
         date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`
+    },
+    {
+      name: 'clotures',
+      sql: `CREATE TABLE IF NOT EXISTS clotures (
+        id INT NOT NULL AUTO_INCREMENT,
+        annee_scolaire VARCHAR(50) NOT NULL,
+        periode VARCHAR(50) NOT NULL,
+        is_closed TINYINT(1) DEFAULT 1,
+        PRIMARY KEY (id),
+        UNIQUE KEY unique_cloture (annee_scolaire, periode)
       )`
     }
   ];
@@ -252,6 +267,30 @@ async function initDatabase() {
                 console.log(`Migration: Colonne '${col.name}' ajoutée à la table settings.`);
             }
         }
+    }
+
+    const tableInfoNotes = await executeQuery('DESCRIBE notes').catch(() => null);
+    if (tableInfoNotes && !tableInfoNotes.some(col => col.Field === 'annee_scolaire')) {
+        await executeQuery("ALTER TABLE notes ADD COLUMN annee_scolaire VARCHAR(50) DEFAULT '2025-2026' AFTER periode");
+        console.log("Migration: Colonne 'annee_scolaire' ajoutée à la table notes.");
+    }
+
+    const tableInfoAbsences = await executeQuery('DESCRIBE absences').catch(() => null);
+    if (tableInfoAbsences && !tableInfoAbsences.some(col => col.Field === 'annee_scolaire')) {
+        await executeQuery("ALTER TABLE absences ADD COLUMN annee_scolaire VARCHAR(50) DEFAULT '2025-2026' AFTER periode");
+        console.log("Migration: Colonne 'annee_scolaire' ajoutée à la table absences.");
+    }
+
+    const tableInfoPaiements = await executeQuery('DESCRIBE paiements').catch(() => null);
+    if (tableInfoPaiements && !tableInfoPaiements.some(col => col.Field === 'annee_scolaire')) {
+        await executeQuery("ALTER TABLE paiements ADD COLUMN annee_scolaire VARCHAR(50) DEFAULT '2025-2026' AFTER motif");
+        console.log("Migration: Colonne 'annee_scolaire' ajoutée à la table paiements.");
+    }
+
+    const tableInfoMoratoires = await executeQuery('DESCRIBE moratoires').catch(() => null);
+    if (tableInfoMoratoires && !tableInfoMoratoires.some(col => col.Field === 'annee_scolaire')) {
+        await executeQuery("ALTER TABLE moratoires ADD COLUMN annee_scolaire VARCHAR(50) DEFAULT '2025-2026' AFTER statut");
+        console.log("Migration: Colonne 'annee_scolaire' ajoutée à la table moratoires.");
     }
   } catch (err) {
     console.error('Erreur lors des migrations:', err.message);
