@@ -203,7 +203,6 @@ async function initDatabase() {
         date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`
     },
-    {
       name: 'clotures',
       sql: `CREATE TABLE IF NOT EXISTS clotures (
         id INT NOT NULL AUTO_INCREMENT,
@@ -212,6 +211,38 @@ async function initDatabase() {
         is_closed TINYINT(1) DEFAULT 1,
         PRIMARY KEY (id),
         UNIQUE KEY unique_cloture (annee_scolaire, periode)
+      )`
+    },
+    {
+      name: 'absences_professeurs',
+      sql: `CREATE TABLE IF NOT EXISTS absences_professeurs (
+        id INTEGER PRIMARY KEY AUTO_INCREMENT,
+        id_professeur INTEGER NOT NULL,
+        date_absence DATE NOT NULL,
+        heures_absentes INTEGER DEFAULT 1,
+        justifie TINYINT(1) DEFAULT 0,
+        motif TEXT,
+        annee_scolaire VARCHAR(50) DEFAULT '2025-2026'
+      )`
+    },
+    {
+      name: 'fiches_paie',
+      sql: `CREATE TABLE IF NOT EXISTS fiches_paie (
+        id INTEGER PRIMARY KEY AUTO_INCREMENT,
+        id_professeur INTEGER NOT NULL,
+        mois VARCHAR(50) NOT NULL,
+        heures_prevues INTEGER DEFAULT 0,
+        heures_absentes_non_justifiees INTEGER DEFAULT 0,
+        taux_horaire DECIMAL(15,2) DEFAULT 0,
+        primes DECIMAL(15,2) DEFAULT 0,
+        avances DECIMAL(15,2) DEFAULT 0,
+        cnps DECIMAL(15,2) DEFAULT 0,
+        retenues DECIMAL(15,2) DEFAULT 0,
+        salaire_net DECIMAL(15,2) DEFAULT 0,
+        date_paiement DATE,
+        statut VARCHAR(20) DEFAULT 'en_attente',
+        annee_scolaire VARCHAR(50) DEFAULT '2025-2026',
+        UNIQUE KEY unique_paie (id_professeur, mois, annee_scolaire)
       )`
     }
   ];
@@ -248,6 +279,16 @@ async function initDatabase() {
         if (!hasSexe) {
             await executeQuery('ALTER TABLE professeurs ADD COLUMN sexe VARCHAR(10) AFTER prenom');
             console.log("Migration: Colonne 'sexe' ajoutée à la table professeurs.");
+        }
+        const hasTaux = tableInfoProfesseurs.some(col => col.Field === 'taux_horaire');
+        if (!hasTaux) {
+            await executeQuery('ALTER TABLE professeurs ADD COLUMN taux_horaire DECIMAL(15,2) DEFAULT 0 AFTER email');
+            console.log("Migration: Colonne 'taux_horaire' ajoutée à la table professeurs.");
+        }
+        const hasHeures = tableInfoProfesseurs.some(col => col.Field === 'heures_mensuelles_prevues');
+        if (!hasHeures) {
+            await executeQuery('ALTER TABLE professeurs ADD COLUMN heures_mensuelles_prevues INTEGER DEFAULT 0 AFTER taux_horaire');
+            console.log("Migration: Colonne 'heures_mensuelles_prevues' ajoutée à la table professeurs.");
         }
     }
 
