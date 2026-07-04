@@ -203,6 +203,7 @@ async function initDatabase() {
         date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`
     },
+    {
       name: 'clotures',
       sql: `CREATE TABLE IF NOT EXISTS clotures (
         id INT NOT NULL AUTO_INCREMENT,
