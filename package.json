@@ -2,16 +2,18 @@
   "name": "schoolservicepro",
   "version": "1.0.0",
   "description": "Système de Gestion d'Établissement Scolaire Professionnel",
-  "main": "dist-electron/main.js",
+  "main": "index.js",
   "scripts": {
-    "start": "electron .",
+    "start": "node index.js",
+    "server": "node index.js",
     "electron": "electron .",
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "echo Pre-built dist ready",
+    "build:electron": "tsc && vite build",
     "preview": "vite preview",
-    "dist": "npm run build && electron-builder",
-    "dist-32": "npm run build && electron-builder --win --ia32",
-    "dist-all": "npm run build && electron-builder --win --ia32 --x64"
+    "dist": "npm run build:electron && electron-builder",
+    "dist-32": "npm run build:electron && electron-builder --win --ia32",
+    "dist-all": "npm run build:electron && electron-builder --win --ia32 --x64"
   },
   "build": {
     "appId": "com.schoolservice.pro",
@@ -58,7 +60,7 @@
     "msnodesqlv8": "^5.1.5",
     "mssql": "^12.2.0",
     "mysql2": "^3.19.1",
-    "nodemailer": "^9.0.5",
+    "nodemailer": "^6.10.0",
     "react": "^19.2.4",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.4",
@@ -66,6 +68,9 @@
     "sqlite3": "^5.1.7",
     "tedious": "^19.2.1",
     "tinyglobby": "^0.2.16",
-    "yallist": "^5.0.0"
+    "yallist": "^5.0.0",
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
   }
 }

@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.build]
+cmds = ["echo Pre-built dist ready"]
+
+[start]
+cmd = "node index.js"
