@@ -4,14 +4,14 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-const { connectDB, executeQuery } = require('./db');
+const { connectDB, executeQuery, reconfigureDB, getDbConfig } = require('./db');
 const { initDatabase } = require('./init_db');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Route Health check pour Coolify / Railway
+// Health check route
 app.get('/health', (req, res) => {
   res.status(200).send('OK');
 });
@@ -25,13 +25,36 @@ if (!fs.existsSync(distPath)) {
   distPath = path.resolve(__dirname, '../dist');
 }
 
-console.log("📂 [Server] Service statique depuis :", distPath);
 if (fs.existsSync(distPath)) {
-  console.log("✅ Dossier dist trouvé.");
   app.use(express.static(distPath));
-} else {
-  console.warn("⚠️ Dossier dist non trouvé à :", distPath);
 }
+
+// Endpoint pour récupérer la config DB actuelle
+app.get('/api/db-config', (req, res) => {
+  try {
+    const config = getDbConfig ? getDbConfig() : {};
+    res.json({ success: true, data: config });
+  } catch(e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Endpoint pour reconfigurer et tester la base de données en direct depuis l'interface
+app.post('/api/db-config', async (req, res) => {
+  const { host, port, user, password, database } = req.body;
+  try {
+    if (reconfigureDB) {
+      const result = await reconfigureDB({ host, port, user, password, database });
+      await initDatabase();
+      res.json({ success: true, message: 'Base de données connectée et initialisée avec succès !', data: result });
+    } else {
+      res.status(500).json({ success: false, error: 'Reconfiguration non disponible' });
+    }
+  } catch (err) {
+    console.error('Erreur reconfiguration DB:', err.message);
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
 
 // Endpoint unique pour les requêtes SQL (compatible Electron et Web Bridge)
 app.post('/api/query', async (req, res) => {
@@ -53,32 +76,28 @@ app.get('*', (req, res) => {
   if (fs.existsSync(indexFile)) {
     res.sendFile(indexFile);
   } else {
-    res.status(200).send(`<h1>SCHOOLSERVICE PRO</h1><p>Serveur en ligne. Fichiers statiques en cours de synchronisation.</p>`);
+    res.status(200).send(`<h1>SCHOOLSERVICE PRO</h1><p>Serveur en ligne.</p>`);
   }
 });
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
-// Démarrage immédiat de l'écoute sur 0.0.0.0 pour satisfaire le healthcheck Coolify
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Serveur SCHOOLSERVICE PRO en ligne sur http://0.0.0.0:${PORT}`);
 });
 
-// Connexion et migration DB asynchrone en arrière-plan sans bloquer le serveur
 async function initDbAsync() {
   try {
     await connectDB();
     await initDatabase();
     console.log('✅ Base de données initialisée et prête.');
   } catch (e) {
-    console.warn('⚠️ Connexion DB en attente (nouvel essai dans 5 secondes) :', e.message);
-    setTimeout(initDbAsync, 5000);
+    console.warn('⚠️ Connexion DB initiale en attente :', e.message);
   }
 }
 
 initDbAsync();
 
-// Gestion des erreurs globales pour éviter tout crash du conteneur
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err.message);
 });
