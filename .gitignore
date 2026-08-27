@@ -1,7 +1,7 @@
 node_modules/
-dist/
 dist-electron/
 release/
+scratch/
 *.log
 .env
 .DS_Store
