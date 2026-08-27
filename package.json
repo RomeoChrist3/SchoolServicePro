@@ -1,17 +1,69 @@
 {
-  "name": "fusionstock-server",
+  "name": "schoolservicepro",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Système de Gestion d'Établissement Scolaire Professionnel",
+  "main": "dist-electron/main.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "build": "echo No build step required for server"
+    "start": "electron .",
+    "electron": "electron .",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "dist": "npm run build && electron-builder",
+    "dist-32": "npm run build && electron-builder --win --ia32",
+    "dist-all": "npm run build && electron-builder --win --ia32 --x64"
+  },
+  "build": {
+    "appId": "com.schoolservice.pro",
+    "productName": "SCHOOLSERVICE PRO",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "APP.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "SCHOOLSERVICE PRO"
+    }
+  },
+  "keywords": [],
+  "author": "SION Company",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/react-dom": "^19.0.0",
+    "@types/sql.js": "^1.4.9",
+    "@vitejs/plugin-react": "^5.1.4",
+    "electron": "^40.6.1",
+    "electron-builder": "^26.8.1",
+    "electron-rebuild": "^3.2.9",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-electron": "^0.29.0"
   },
   "dependencies": {
-    "express": "^4.21.0",
-    "mysql2": "^3.11.0",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "jsonwebtoken": "^9.0.2"
+    "bootstrap": "^5.3.8",
+    "i18next": "^26.3.4",
+    "lowdb": "^7.0.1",
+    "lru-cache": "^11.4.0",
+    "msnodesqlv8": "^5.1.5",
+    "mssql": "^12.2.0",
+    "mysql2": "^3.19.1",
+    "react": "^19.2.4",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^19.2.4",
+    "react-i18next": "^17.0.8",
+    "sqlite3": "^5.1.7",
+    "tedious": "^19.2.1",
+    "tinyglobby": "^0.2.16",
+    "yallist": "^5.0.0"
   }
 }

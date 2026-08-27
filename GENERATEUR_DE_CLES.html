@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Générateur de Clés SCHOOLSERVICE PRO V1.0</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 2.5rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 480px; }
+        h2 { color: #198754; text-align: center; margin-bottom: 5px; }
+        .version { text-align: center; font-size: 0.7rem; color: #aaa; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+        label { font-weight: bold; font-size: 0.9rem; color: #444; display: block; margin-bottom: 8px; }
+        input { width: 100%; padding: 14px; margin-bottom: 20px; border: 2px solid #e9ecef; border-radius: 10px; box-sizing: border-box; font-family: 'Courier New', monospace; font-size: 1.2rem; outline: none; transition: all 0.2s; text-align: center; }
+        input:focus { border-color: #198754; background: #f8fffb; }
+        .result-box { background: #f8f9fa; padding: 20px; border-radius: 10px; border: 2px dashed #dee2e6; text-align: center; position: relative; }
+        .key-label { font-size: 0.75rem; font-weight: bold; color: #6c757d; text-transform: uppercase; margin-bottom: 10px; display: block; }
+        .key-display { font-weight: bold; font-size: 1.8rem; color: #198754; display: block; letter-spacing: 2px; cursor: pointer; }
+        .key-display:active { transform: scale(0.98); }
+        .copy-hint { font-size: 0.7rem; color: #adb5bd; margin-top: 10px; }
+        .footer { margin-top: 30px; font-size: 0.75rem; color: #adb5bd; text-align: center; border-top: 1px solid #eee; pt: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🔑 Générateur SCHOOLSERVICE</h2>
+        <div class="version">Sécurité Renforcée V1.0</div>
+        
+        <label>ID MACHINE DU CLIENT :</label>
+        <input type="text" id="mid" placeholder="Copier-coller l'ID ici" oninput="generate()" autocomplete="off">
+        
+        <div class="result-box">
+            <span class="key-label">Clé d'activation générée</span>
+            <span id="key" class="key-display" onclick="copyKey()">---</span>
+            <div id="copyMsg" class="copy-hint">Cliquez sur la clé pour la copier</div>
+        </div>
+        
+        <div class="footer">
+            <b>Protection Permanente :</b> Cette clé est liée au processeur.<br>
+            Elle reste valide même après formatage ou changement de base de données.
+        </div>
+    </div>
+
+    <script>
+        function generate() {
+            let mid = document.getElementById('mid').value.trim();
+            const keyEl = document.getElementById('key');
+            
+            if (!mid) {
+                keyEl.innerText = "---";
+                return;
+            }
+            
+            // NETTOYAGE STRICT (Identique à l'App)
+            mid = mid.replace(/ProcessorId/gi, '').replace(/[^a-zA-Z0-9]/g, '').trim();
+            
+            if (mid.length === 0) {
+                keyEl.innerText = "ID INVALIDE";
+                return;
+            }
+
+            // ALGORITHME
+            const reversed = mid.split('').reverse().join('');
+            const short = reversed.substring(0, 8).toUpperCase();
+            const finalKey = "SS-" + short + "-PRO";
+            
+            keyEl.innerText = finalKey;
+        }
+
+        function copyKey() {
+            const key = document.getElementById('key').innerText;
+            if (key === "---" || key === "ID INVALIDE") return;
+            
+            navigator.clipboard.writeText(key);
+            const msg = document.getElementById('copyMsg');
+            msg.innerText = "✅ COPIÉ !";
+            msg.style.color = "#198754";
+            msg.style.fontWeight = "bold";
+            
+            setTimeout(() => {
+                msg.innerText = "Cliquez sur la clé pour la copier";
+                msg.style.color = "#adb5bd";
+                msg.style.fontWeight = "normal";
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

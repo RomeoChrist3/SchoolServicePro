@@ -1,0 +1,41 @@
+✦ Pour configurer l'envoi des mails dans SCHOOLSERVICE PRO, nous allons utiliser le protocole SMTP. Voici la procédure
+  étape par étape, en prenant l'exemple de Gmail (qui est le plus courant et le plus fiable).
+
+  1. Préparation de votre compte Gmail
+  Google a renforcé sa sécurité. Vous ne pouvez plus utiliser votre mot de passe habituel.
+   1. Connectez-vous à votre compte Google et allez dans Sécurité.
+   2. Activez la Validation en deux étapes (si ce n'est pas déjà fait).
+   3. Cherchez l'option Mots de passe d'application (en bas de la page Sécurité).
+   4. Générez un nouveau mot de passe pour "Autre (Nom personnalisé)" et appelez-le "SchoolServicePro".
+   5. Google vous donnera un code de 16 caractères. Notez-le bien, c'est celui-ci qu'il faudra saisir dans le logiciel.
+
+  2. Saisie dans le logiciel
+  Allez dans le menu Paramètres Système de votre application, descendez jusqu'à la section 📩 Paramètres de Notification
+  et remplissez comme suit :
+
+   * Serveur SMTP : smtp.gmail.com
+   * Port : 587 (ou 465 pour une connexion SSL directe)
+   * Email / Utilisateur : votre-adresse@gmail.com
+   * Mot de passe d'application : baxg wyai hsaq xmss (les 16 caractères générés à l'étape 1)
+
+  Cliquez ensuite sur 💾 Enregistrer les accès Notifications.
+
+  3. Test de l'envoi
+   1. Allez dans le menu Notes.
+   2. Assurez-vous que l'étudiant sélectionné possède une adresse email valide dans sa fiche (cliquez sur "Modifier"
+      dans le menu Étudiants pour vérifier/ajouter son mail).
+   3. Cliquez sur le bouton 📧 Mail.
+   4. Si tout est bien configuré, vous recevrez un message de confirmation : "EMAIL envoyé avec succès !".
+
+  Cas d'autres fournisseurs :
+   * Outlook / Hotmail :
+       * Serveur : smtp.office365.com
+       * Port : 587
+   * Yahoo :
+       * Serveur : smtp.mail.yahoo.com
+       * Port : 587 (nécessite aussi un mot de passe d'application)
+
+  Astuce : Si vous utilisez un domaine personnalisé (ex: contact@votre-ecole.com), demandez les identifiants SMTP à
+  votre hébergeur web.
+
+  Souhaitez-vous que je teste la connexion SMTP pour vous si vous avez déjà des identifiants ?

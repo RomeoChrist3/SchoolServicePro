@@ -1,0 +1,23 @@
+schoolservice en ligne
+
+mysql://mysql-t95o.railway.internal
+3306/railway
+pajGLgWOdlkIWOXzTnxEeopuxiSersnn
+mysql -h kodama.proxy.rlwy.net -u root -p 
+pajGLgWOdlkIWOXzTnxEeopuxiSersnn --
+port 58581 --
+protocol=TCP railway
+
+SUR MYSQL
+MYSQLHOST:mysql-t95o.railway.internal
+MYSQLPORT:3306
+MYSQLUSER:root
+MYSQLPASSWORD:pajGLgWOdlkIWOXzTnxEeopuxiSersnn
+MYSQLDATABASE:railway
+
+SUR SCHOOLSERVICE
+DB_HOST = mysql-t95o.railway.internal
+DB_PORT = 3306
+DB_USER = root
+DB_PASSWORD = pajGLgWOdlkIWOXzTnxEeopuxiSersnn
+DB_NAME = railway
