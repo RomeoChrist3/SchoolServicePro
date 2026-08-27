@@ -19,7 +19,8 @@ export default defineConfig(({ mode }) => ({
                 'sqlite3', 
                 'mssql', 
                 'tedious', 
-                'msnodesqlv8'
+                'msnodesqlv8',
+                'nodemailer'
               ]
             }
           }
