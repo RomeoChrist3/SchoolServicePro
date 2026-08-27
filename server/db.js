@@ -1,115 +1,71 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const configuredDbName = process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE;
-const configuredHost = process.env.DB_HOST || process.env.MYSQLHOST || process.env.MYSQL_HOST;
-const configuredPassword = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || process.env.MYSQL_ROOT_PASSWORD;
-const configuredUser = process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_USER;
-const configuredPort = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_PORT || '3306', 10);
+const dbHost = process.env.DB_HOST || process.env.MYSQLHOST || process.env.MYSQL_HOST || 'mysql-database-principale';
+const dbUser = process.env.DB_USER || process.env.MYSQLUSER || process.env.MYSQL_USER || 'root';
+const dbPassword = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || process.env.MYSQL_PASSWORD || process.env.MYSQL_ROOT_PASSWORD || 'vak6bcXxttUiA5yFaeD65LEAs6AKkt2vQv6kOm4AqG9njm7Ae0LINb82TJnX98vK';
+const dbPort = parseInt(process.env.DB_PORT || process.env.MYSQLPORT || process.env.MYSQL_PORT || '3306', 10);
+const dbName = process.env.DB_NAME || process.env.MYSQLDATABASE || process.env.MYSQL_DATABASE || 'school_db';
 
 let pool;
-let activeDbName = configuredDbName || 'school_db';
 
-const knownPasswords = [
-  configuredPassword,
-  'vak6bcXxttUiA5yFaeD65LEAs6AKkt2vQv6kOm4AqG9njm7Ae0LINb82TJnX98vK',
-  'yMRkrpYwXnK58KiDH5f823Klu4SAEyCUjLOcEqfFsFakMnf5MZFMFn1iZTPBvBtT',
-  'pajGLgWOdlkIWOXzTnxEeopuxiSersnn',
-  'root',
-  ''
-].filter(p => p !== undefined && p !== null);
+async function connectDB() {
+  if (pool) return pool;
 
-const candidateHosts = [
-  configuredHost,
-  configuredHost ? configuredHost.toLowerCase() : null,
-  'mysql',
-  'mysql-database-principale',
-  'mariadb',
-  'database',
-  '81d1370de447',
-  '172.17.0.1',
-  '172.18.0.1',
-  '172.19.0.1',
-  '172.20.0.1',
-  'host.docker.internal',
-  '51.255.42.223',
-  'localhost',
-  '127.0.0.1'
-].filter(Boolean);
+  console.log(`📡 [DB] Connexion vers ${dbHost}:${dbPort} base: ${dbName} (user: ${dbUser})`);
 
-const candidateDbs = [
-  configuredDbName,
-  'school_db',
-  'schoolservice_db',
-  'railway',
-  'default'
-].filter(Boolean);
-
-async function tryConnection(host, pwd, db) {
-  const conn = await mysql.createConnection({
-    host: host,
-    user: configuredUser || 'root',
-    password: pwd,
-    port: configuredPort,
-    connectTimeout: 3000
-  });
-
+  // 1. Essai direct avec la configuration principale
   try {
-    const [rows] = await conn.query('SHOW DATABASES');
-    const existingDbs = rows.map(r => Object.values(r)[0]);
-    
-    // Trouver la base existante
-    let targetDb = existingDbs.includes(db) ? db : (existingDbs.includes('school_db') ? 'school_db' : (existingDbs.includes('schoolservice_db') ? 'schoolservice_db' : db));
-    
-    await conn.query(`CREATE DATABASE IF NOT EXISTS \`${targetDb}\``);
-    await conn.end();
-
-    const newPool = mysql.createPool({
-      host: host,
-      user: configuredUser || 'root',
-      password: pwd,
-      port: configuredPort,
-      database: targetDb,
-      connectTimeout: 5000,
+    const directPool = mysql.createPool({
+      host: dbHost,
+      user: dbUser,
+      password: dbPassword,
+      port: dbPort,
+      database: dbName,
+      connectTimeout: 4000,
       enableKeepAlive: true,
       keepAliveInitialDelay: 10000,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
     });
-
-    await newPool.query('SELECT 1');
-    activeDbName = targetDb;
-    return newPool;
-  } catch (e) {
-    try { await conn.end(); } catch(err) {}
-    throw e;
-  }
-}
-
-async function connectDB() {
-  if (pool) return pool;
-
-  const uniqueHosts = Array.from(new Set(candidateHosts));
-  const uniquePwds = Array.from(new Set(knownPasswords));
-  const uniqueDbs = Array.from(new Set(candidateDbs));
-
-  for (const h of uniqueHosts) {
-    for (const pwd of uniquePwds) {
-      for (const db of uniqueDbs) {
-        try {
-          console.log(`📡 [DB] Test connexion : host=${h}, db=${db}`);
-          pool = await tryConnection(h, pwd, db);
-          console.log(`✅ [DB] SUCCÈS ! Connecté à MySQL sur ${h} (Base: ${activeDbName})`);
-          return pool;
-        } catch (err) {
-          // Continuer le scan
-        }
-      }
-    }
+    await directPool.query('SELECT 1');
+    console.log(`✅ [DB] Connecté avec succès à MySQL (${dbHost} / ${dbName}) !`);
+    pool = directPool;
+    return pool;
+  } catch (err1) {
+    console.warn(`⚠️ [DB] Échec direct (${dbHost}): ${err1.message}. Test des hôtes de secours...`);
   }
 
-  throw new Error(`Impossible d'établir la connexion MySQL après avoir testé les hôtes (${uniqueHosts.join(', ')})`);
+  // 2. Essais rapides des hôtes alternatifs en cas de nom d'hôte Coolify personnalisé
+  const fallbackHosts = [
+    'mysql-database-principale',
+    'mysql',
+    'localhost',
+    '127.0.0.1',
+    '172.17.0.1'
+  ].filter(h => h !== dbHost);
+
+  for (const h of fallbackHosts) {
+    try {
+      const fallbackPool = mysql.createPool({
+        host: h,
+        user: dbUser,
+        password: dbPassword,
+        port: dbPort,
+        database: dbName,
+        connectTimeout: 1500,
+        enableKeepAlive: true,
+        connectionLimit: 5
+      });
+      await fallbackPool.query('SELECT 1');
+      console.log(`✅ [DB] Connecté avec succès via l'hôte de secours : ${h}`);
+      pool = fallbackPool;
+      return pool;
+    } catch (e) {}
+  }
+
+  throw new Error(`Impossible de joindre la base MySQL sur ${dbHost}:${dbPort} (Base: ${dbName}, User: ${dbUser}). Vérifiez les variables d'environnement dans Coolify.`);
 }
 
 async function executeQuery(query, params = []) {
@@ -124,5 +80,5 @@ module.exports = {
   connectDB,
   getPool: () => pool,
   executeQuery,
-  get dbName() { return activeDbName; }
+  dbName
 };
